@@ -1700,6 +1700,122 @@ static void differenceFunc(sqlite3_context *context, int argc, sqlite3_value **a
 }
 #endif
 
+/* *********************************** */
+/* BEGIN EXTENSIONS BY RAFAEL GONZALEZ */
+/* *********************************** */
+
+#define MEAN_EARTH_RADIUS 6371 /* In Km, see https://en.wikipedia.org/wiki/Great-circle_distance */
+
+/*
+  sphericalDistFunc(lat, long. refLat, refLong, R)
+  Calculates the spherical distance of a given point respect to a reference point 
+  both in an sphere of radius R by the haversine formula
+  (See see https://en.wikipedia.org/wiki/Great-circle_distance )
+  For practical usage applied to Earth distances, Latitudes nand longitudes are given in decimal degrees
+*/
+
+static void sphericalDistFunc(sqlite3_context *context, int argc, sqlite3_value **argv){
+
+  double lati1, long1; /* Input point */
+  double lati2, long2; /* reference point */
+  double radius = MEAN_EARTH_RADIUS;
+  double hav1, hav2, result;
+
+  assert(argc == 5);
+  
+  /* test for input longitude and latitude */
+  if(sqlite3_value_type(argv[0]) == SQLITE_NULL || sqlite3_value_type(argv[1]) == SQLITE_NULL) {
+    sqlite3_result_error(context, "input latitude or longitude is NULL)", -1);
+    return;
+  }
+
+  /* test for reference point longitude and latitude */
+  if(sqlite3_value_type(argv[2]) == SQLITE_NULL || sqlite3_value_type(argv[3]) == SQLITE_NULL) {
+    sqlite3_result_error(context, "reference point latitude or longitude is NULL)", -1);
+    return;
+  }
+
+  /* test for sphere radius */
+  if(sqlite3_value_type(argv[4]) != SQLITE_NULL) {
+    radius = sqlite3_value_double(argv[4]);
+  }
+
+  /* TODO: Check for valid input values before calculating the formula */
+  lati1 = sqlite3_value_double(argv[0]);
+  long1 = sqlite3_value_double(argv[1]);
+  lati2 = sqlite3_value_double(argv[2]);
+  long2 = sqlite3_value_double(argv[3]);
+
+  lati1 = deg2rad(lati1); long1 = deg2rad(long1);
+  lati2 = deg2rad(lati2); long2 = deg2rad(long2);
+
+  /* this formula is accurate for most distances on a sphere, 
+    it too suffers from rounding errors for the special (and somewhat unusual) 
+    case of antipodal points (on opposite ends of the sphere)
+  */
+
+  hav1 = sin((lati1 - lati2)/2);
+  hav1 *= hav1;
+  hav2 = sin((long1 - long2)/2);
+  hav2 *= hav2;
+  result = hav1+hav2*cos(lati1)*cos(lati2);
+  if (result < 0.0) {
+    sqlite3_result_error(context, "Internal calculation error sqrt(x<0)", -1);
+    return;
+  }
+  result = sqrt(result);
+  if (result > 1.0) {
+    sqlite3_result_error(context, "Internal calculation error asin(x>1)", -1);
+    return;
+  }
+  result = 2*radius*asin(sqrt(hav1+hav2*cos(lati1)*cos(lati2))); 
+  sqlite3_result_double(context, result);
+}
+
+#if 0
+static void hhmmssFunc(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+  
+  char* rz;
+  
+
+  assert( argc == 1 );
+
+  if( sqlite3_value_type(argv[0]) == SQLITE_NULL) {
+    sqlite3_result_null(context);
+    return;
+  }
+
+  r1 = sqlite3_value_double(argv[0]);
+
+  rz = sqlite3_malloc(l+1);
+  if (!rz) {
+    sqlite3_result_error_nomem(context);
+    return;
+  }
+  rzt = rz+l;
+  *(rzt--) = '\0';
+
+  zt=z;
+  while( sqliteCharVal((unsigned char *)zt)!=0 ){
+    z=zt;
+    sqliteNextChar(zt);
+    for(i=1; zt-i>=z; ++i){
+      *(rzt--)=*(zt-i);
+    }
+  }
+
+  sqlite3_result_text(context, rz, -1, SQLITE_TRANSIENT);
+  sqlite3_free(rz);
+}
+#endif
+
+
+/* *********************************** */
+/* END   EXTENSIONS BY RAFAEL GONZALEZ */
+/* *********************************** */
+
+
 /*
 ** This function registered all of the above C functions as SQL
 ** functions.  This should be the only routine in this file with
@@ -1751,6 +1867,10 @@ int RegisterExtensionFunctions(sqlite3 *db){
 
     { "pi",                 0, 0, SQLITE_UTF8,    1, piFunc },
 
+    /* begin Rafael extensions */
+    { "sphericaldist",      5, 0, SQLITE_UTF8,    1, sphericalDistFunc },
+    /* end Rafael extensions
+     
 
     /* string */
     { "replicate",          2, 0, SQLITE_UTF8,    0, replicateFunc },
