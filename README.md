@@ -12,7 +12,7 @@ I have added the following functions to the original file:
 
 | SQL Function   |  Arguments                  | Description                                 
 |:--------------:|:---------------------------:|:------------------------------------------------------------------------------------------|
-| latitude       | X                           | Returns printable latitude string   DD MM SS.SS \[N|S\] given latitude X in floating point degrees.
+| latitude       | X                           | Returns printable latitude string   DD MM SS.SS &#91;N|S&#93; given latitude X in floating point degrees.
 | longitude      | X                           | Returns printable longitude string DDD MM SS.SS \[E|W\] given longitude X in floating point degrees.
 | sphericaldist  | XLat, XLong, YLat, YLong, R | Returns distance from a given point X to a reference point Y and over a sphere with radius R.
 
