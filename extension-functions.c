@@ -1707,7 +1707,7 @@ static void differenceFunc(sqlite3_context *context, int argc, sqlite3_value **a
 #define MEAN_EARTH_RADIUS 6371 /* In Km, see https://en.wikipedia.org/wiki/Great-circle_distance */
 
 /*
-  sphericalDistFunc(lat, long. refLat, refLong, R)
+  sphericaldist(lat, long. refLat, refLong, R)
   Calculates the spherical distance of a given point respect to a reference point 
   both in an sphere of radius R by the haversine formula
   (See see https://en.wikipedia.org/wiki/Great-circle_distance )
@@ -1772,43 +1772,79 @@ static void sphericalDistFunc(sqlite3_context *context, int argc, sqlite3_value 
   sqlite3_result_double(context, result);
 }
 
-#if 0
-static void hhmmssFunc(sqlite3_context *context, int argc, sqlite3_value **argv)
+/*
+  latitude(x)
+  Returns a printable string with the latitude coordinates in sexagesimal format
+  DD MM SS.SS [N|S]. x in decimal degrees, negative is South. 
+*/
+
+static void latitudeFunc(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
   
-  char* rz;
-  
+  char* result;
+  double lati;
+  char  pointing;
+  double hh, mm, ss;
 
   assert( argc == 1 );
-
   if( sqlite3_value_type(argv[0]) == SQLITE_NULL) {
     sqlite3_result_null(context);
     return;
   }
-
-  r1 = sqlite3_value_double(argv[0]);
-
-  rz = sqlite3_malloc(l+1);
-  if (!rz) {
+  result = sqlite3_malloc(13+1);
+  if (!result) {
     sqlite3_result_error_nomem(context);
     return;
   }
-  rzt = rz+l;
-  *(rzt--) = '\0';
-
-  zt=z;
-  while( sqliteCharVal((unsigned char *)zt)!=0 ){
-    z=zt;
-    sqliteNextChar(zt);
-    for(i=1; zt-i>=z; ++i){
-      *(rzt--)=*(zt-i);
-    }
-  }
-
-  sqlite3_result_text(context, rz, -1, SQLITE_TRANSIENT);
-  sqlite3_free(rz);
+  result[13+1] = '\0';
+  lati = sqlite3_value_double(argv[0]);
+  pointing = (lati < 0) ? 'S' : 'N';                                                             
+  lati = fabs(lati);                                                                              
+  lati = 60*modf(lati, &hh);   
+  lati = 60*modf(lati, &mm);
+  ss   = lati;                                                                                                                              
+  snprintf(result, 13+1, "%02d %02d %.2f %c", (int)(hh), (int)(mm), ss, pointing);
+  sqlite3_result_text(context, result, -1, SQLITE_TRANSIENT);
+  sqlite3_free(result);
 }
-#endif
+
+
+/*
+  longitude(x)
+  Returns a printable string with the longitude coordinates in sexagesimal format
+  DDD MM SS.SS [E|W].  x in decimal degrees, negative is West.
+*/
+
+static void longitudeFunc(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+  
+  char* result;
+  double longi;
+  char  pointing;
+  double hh, mm, ss;
+
+  assert( argc == 1 );
+  if( sqlite3_value_type(argv[0]) == SQLITE_NULL) {
+    sqlite3_result_null(context);
+    return;
+  }
+  result = sqlite3_malloc(14+1);
+  if (!result) {
+    sqlite3_result_error_nomem(context);
+    return;
+  }
+  result[14+1] = '\0';
+  longi = sqlite3_value_double(argv[0]);
+  pointing = (longi < 0) ? 'W' : 'E';                                                             
+  longi = fabs(longi);                                                                              
+  longi = 60*modf(longi, &hh);   
+  longi = 60*modf(longi, &mm);
+  ss    = longi;                                                               
+  snprintf(result, 14+1, "%03d %02d %.2f %c", (int)(hh), (int)(mm), ss, pointing);
+  sqlite3_result_text(context, result, -1, SQLITE_TRANSIENT);
+  sqlite3_free(result);
+}
+
 
 
 /* *********************************** */
@@ -1869,6 +1905,8 @@ int RegisterExtensionFunctions(sqlite3 *db){
 
     /* begin Rafael extensions */
     { "sphericaldist",      5, 0, SQLITE_UTF8,    1, sphericalDistFunc },
+    { "latitude",           1, 0, SQLITE_UTF8,    1, latitudeFunc },
+    { "longitude",          1, 0, SQLITE_UTF8,    1, longitudeFunc },
     /* end Rafael extensions
      
 
