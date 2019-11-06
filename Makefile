@@ -11,33 +11,47 @@
 #  -Wall turns on most, but not all, compiler warnings
 #
 # for C++ define  CC = g++
+
+TARGET = libsqlitefunctions
+SOURCES = extension-functions.c
+
 RM = rm -f
 CC = gcc
-CFLAGS  = -g -Wall -fPIC -O3
-LDFLAGS = -lm 
+LD = gcc
+CFLAGS  = -c -g -Wall -fPIC -O3
 
-TARGET = libsqlitefunctions.so
+# The -Wl,-soname option is used when versioning dynamic libraries
+# It is not really useful in this case (dynamic loading of a library)
+LDFLAGS = -shared -Wl,-soname,$(TARGET).so
+LDLIBS  = -lm -lc
+
 INSTALL_DIR = /usr/local/lib 
+
+all: $(TARGET).so
+
+$(TARGET).o:  $(SOURCES)
+	$(CC) $(CFLAGS)  $< -o $@
+
+$(TARGET).so: $(TARGET).o
+	$(LD) $(LDFLAGS) $(LDLIBS) $< -o $@
 
 # typing 'make' will invoke the first target entry in the file 
 # (in this case the default target entry)
 # you can name this target entry anything, but "default" or "all"
 # are the most commonly used names by convention
 #
-all: $(TARGET)
 
 # To create the executable file count we need the object files
 # countwords.o, counter.o, and scanner.o:
 #
-$(TARGET):  extension-functions.c 
-	$(CC) $(CFLAGS) -shared $< -o $@
+
 
 install: all
-	install --verbose --strip  --mode 0755 $(TARGET) $(INSTALL_DIR)
+	install --verbose --mode 0755 $(TARGET).so $(INSTALL_DIR)
 
 # To start over from scratch, type 'make clean'.  This
 # removes the executable file, as well as old .o object
 # files and *~ backup files:
 #
 clean: 
-	$(RM) (TARGET) *.o *~ 
+	$(RM) $(TARGET).so *.o *~ 
