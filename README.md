@@ -17,7 +17,7 @@ I have added the following functions to the original file:
 | sphericaldist  | XLat, XLong, YLat, YLong, R | Returns distance from a given point X to a reference point Y and over a sphere with radius R.
 
 Longitudes and latitudes in these functions are given in floating point degrees (instead of radians) for convenience.
-If Radius is NULL when calling `sphericaldist`, the Earth radius (6371 Km) is used. Using a R = 1, the spherical distance returned is the substended angle in radians.
+If Radius is `NULL` when calling `sphericaldist`, the Earth radius (6371 Km) is used. Using a R = 1, the spherical distance returned is the substended angle in radians.
 
 ## Notes
 
