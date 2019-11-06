@@ -2,17 +2,22 @@
 
 My customized version of SQLite's [`extension-functions.c`](https://www.sqlite.org/contrib/download/extension-functions.c?get=25) for my own needs.
 
-I have added the following functions to the original file:
+The original file was contributed to the SQLite repository by Liam Healy on 2010-02-06 15:45:07 and provides mathematical and string extension functions for SQL queries using the loadable extensions mechanism. 
 
+*  **Math:** acos, asin, atan, atn2, atan2, acosh, asinh, atanh, difference, degrees, radians, cos, sin, tan, cot, cosh, sinh, tanh, coth, exp, log, log10, power, sign, sqrt, square, ceil, floor, pi. 
+* **String:** replicate, charindex, leftstr, rightstr, ltrim, rtrim, trim, replace, reverse, proper, padl, padr, padc, strfilter. 
+* **Aggregate:** stdev, variance, mode, median, lower_quartile, upper_quartile.
+
+I have added the following functions to the original file:
 
 | SQL Function   |  Arguments                  | Description                                 
 |:--------------:|:---------------------------:|:------------------------------------------------------------------------------------------|
 | latitude       | X                           | Returns printable latitude   DD MM SS.SS [N|S] given latitude X in floating point degrees.
 | longitude      | X                           | Returns printable longitude DDD MM SS.SS [E|W] given longitude X in floating point degrees.
-| spherical_dist | XLat, XLong, YLat, YLong, R | Returns distance from a given point X to a reference point Y and over a sphere with radius R.
+| sphericaldist  | XLat, XLong, YLat, YLong, R | Returns distance from a given point X to a reference point Y and over a sphere with radius R.
 
-Longitudes and latitudes in these functions are given in floating point degrees (instead of radians) for convenicence.
-If Radius is NULL when calling `spherical_dist`, the Earth radius (6371 Km) is used. Using a R = 1, the spherical distance returned is the substended angle in radians.
+Longitudes and latitudes in these functions are given in floating point degrees (instead of radians) for convenience.
+If Radius is NULL when calling `sphericaldist`, the Earth radius (6371 Km) is used. Using a R = 1, the spherical distance returned is the substended angle in radians.
 
 ## Notes
 
@@ -31,11 +36,14 @@ make
 sudo make install
 ```
 
-# How to load extensions from teh command line
+# How to load extensions from the command line
 
 ```sql
-.load /usr/local/lib/libsqlitefunctions
-select (cos(3.145192));
+sqlite3 test.db
+SQLite version 3.22.0 2018-01-22 18:45:57
+Enter ".help" for usage hints.
+sqlite> .load /usr/local/lib/libsqlitefunctions
+sqlite>
 ```
 
 # How to load extensions from Python
