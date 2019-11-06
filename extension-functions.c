@@ -1723,19 +1723,14 @@ static void sphericalDistFunc(sqlite3_context *context, int argc, sqlite3_value 
 
   assert(argc == 5);
   
-  /* test for input longitude and latitude */
-  if(sqlite3_value_type(argv[0]) == SQLITE_NULL || sqlite3_value_type(argv[1]) == SQLITE_NULL) {
-    sqlite3_result_error(context, "input latitude or longitude is NULL)", -1);
+  /* NULL if any of the input coordinates are NULL */
+  if(sqlite3_value_type(argv[0]) == SQLITE_NULL || sqlite3_value_type(argv[1]) == SQLITE_NULL ||
+     sqlite3_value_type(argv[2]) == SQLITE_NULL || sqlite3_value_type(argv[3]) == SQLITE_NULL) {
+        sqlite3_result_null(context);
     return;
   }
 
-  /* test for reference point longitude and latitude */
-  if(sqlite3_value_type(argv[2]) == SQLITE_NULL || sqlite3_value_type(argv[3]) == SQLITE_NULL) {
-    sqlite3_result_error(context, "reference point latitude or longitude is NULL)", -1);
-    return;
-  }
-
-  /* test for sphere radius */
+  /* adopt a default value for sphere radius if input is NULL */
   if(sqlite3_value_type(argv[4]) != SQLITE_NULL) {
     radius = sqlite3_value_double(argv[4]);
   }
@@ -1846,7 +1841,6 @@ static void longitudeFunc(sqlite3_context *context, int argc, sqlite3_value **ar
 }
 
 
-
 /* *********************************** */
 /* END   EXTENSIONS BY RAFAEL GONZALEZ */
 /* *********************************** */
@@ -1909,7 +1903,6 @@ int RegisterExtensionFunctions(sqlite3 *db){
     { "longitude",          1, 0, SQLITE_UTF8,    1, longitudeFunc },
     /* end Rafael extensions
      
-
     /* string */
     { "replicate",          2, 0, SQLITE_UTF8,    0, replicateFunc },
     { "charindex",          2, 0, SQLITE_UTF8,    0, charindexFunc },
