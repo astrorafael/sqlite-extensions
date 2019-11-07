@@ -12,9 +12,11 @@ I have added the following functions to the original file:
 
 | SQL Function   |  Arguments                  | Description                                 
 |:--------------:|:---------------------------:|:------------------------------------------------------------------------------------------|
+| sphericaldist  | XLat, XLong, YLat, YLong, R | Returns distance from a given point X to a reference point Y and over a sphere with radius R.
 | latitude2sexa  | X                           | Returns printable latitude string   DD MM SS.SS \[N\|S\] given latitude X in floating point degrees.
 | longitude2sexa | X                           | Returns printable longitude string DDD MM SS.SS \[E\|W\] given longitude X in floating point degrees.
-| sphericaldist  | XLat, XLong, YLat, YLong, R | Returns distance from a given point X to a reference point Y and over a sphere with radius R.
+| sexa2longitude | X                           | Returns longitude in floating point degrees given a string of the form "DD MM SS(.SS) \[W\|E\]".
+| sexa2latitude  | X                           | Returns latitude in floating point degrees given a string of the form "DD MM SS(.SS) \[N\|S\]".
 
 Longitudes and latitudes in these functions are given in floating point degrees (instead of radians) for convenience.
 If Radius is `NULL` when calling `sphericaldist`, the Earth radius (6371 Km) is used. Using a R = 1, the spherical distance returned is the substended angle in radians.

@@ -1816,8 +1816,8 @@ static void longitude2sexaFunc(sqlite3_context *context, int argc, sqlite3_value
   char* result;
   double longi;
   char  pointing;
-  double hh, mm, ss;
-
+  double dd, mm, ss;
+  
   assert( argc == 1 );
   if( sqlite3_value_type(argv[0]) == SQLITE_NULL) {
     sqlite3_result_null(context);
@@ -1832,12 +1832,53 @@ static void longitude2sexaFunc(sqlite3_context *context, int argc, sqlite3_value
   longi = sqlite3_value_double(argv[0]);
   pointing = (longi < 0) ? 'W' : 'E';                                                             
   longi = fabs(longi);                                                                              
-  longi = 60*modf(longi, &hh);   
+  longi = 60*modf(longi, &dd);   
   longi = 60*modf(longi, &mm);
   ss    = longi;                                                               
-  snprintf(result, 14+1, "%03d %02d %.2f %c", (int)(hh), (int)(mm), ss, pointing);
+  snprintf(result, 14+1, "%03d %02d %.2f %c", (int)(dd), (int)(mm), ss, pointing);
   sqlite3_result_text(context, result, -1, SQLITE_TRANSIENT);
   sqlite3_free(result);
+}
+
+static void sexa2degreesFunc(sqlite3_context *context, int argc, sqlite3_value **argv)
+{
+  
+  double result;
+  const unsigned char*  input;
+  int ret, sign;
+  unsigned int dd, mm;
+  float ss;
+  char orientation;
+
+
+  assert( argc == 1 );
+  if( sqlite3_value_type(argv[0]) == SQLITE_NULL) {
+    sqlite3_result_null(context);
+    return;
+  }
+
+  input = sqlite3_value_text(argv[0]);
+  ret = sscanf((const char*)(input), "%u %u %f %c", &dd, &mm, &ss, &orientation);
+  if (ret != 4) {
+    sqlite3_result_null(context);
+    return;
+  }
+  
+  switch (orientation) {
+    case 'W':
+    case 'S':
+      sign = -1;
+      break;
+    case 'E':
+    case 'N':
+      sign = 1;
+      break;
+    default:
+      sqlite3_result_null(context);
+      return;
+  }
+  result = (dd + mm/60.0 + ss/3600.0)*sign;
+  sqlite3_result_double(context, result);
 }
 
 
@@ -1901,7 +1942,9 @@ int RegisterExtensionFunctions(sqlite3 *db){
     { "sphericaldist",      5, 0, SQLITE_UTF8,    1, sphericalDistFunc },
     { "latitude2sexa",      1, 0, SQLITE_UTF8,    1, latitude2sexaFunc },
     { "longitude2sexa",     1, 0, SQLITE_UTF8,    1, longitude2sexaFunc },
-    /* end Rafael extensions
+    { "sexa2longitude",     1, 0, SQLITE_UTF8,    1, sexa2degreesFunc },
+    { "sexa2latitude",      1, 0, SQLITE_UTF8,    1, sexa2degreesFunc },
+    /* end Rafael extensions */
      
     /* string */
     { "replicate",          2, 0, SQLITE_UTF8,    0, replicateFunc },
