@@ -1768,12 +1768,12 @@ static void sphericalDistFunc(sqlite3_context *context, int argc, sqlite3_value 
 }
 
 /*
-  latitude(x)
+  latitude2sexa(x)
   Returns a printable string with the latitude coordinates in sexagesimal format
   DD MM SS.SS [N|S]. x in decimal degrees, negative is South. 
 */
 
-static void latitudeFunc(sqlite3_context *context, int argc, sqlite3_value **argv)
+static void latitude2sexaFunc(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
   
   char* result;
@@ -1805,12 +1805,12 @@ static void latitudeFunc(sqlite3_context *context, int argc, sqlite3_value **arg
 
 
 /*
-  longitude(x)
+  longitude2sexa(x)
   Returns a printable string with the longitude coordinates in sexagesimal format
   DDD MM SS.SS [E|W].  x in decimal degrees, negative is West.
 */
 
-static void longitudeFunc(sqlite3_context *context, int argc, sqlite3_value **argv)
+static void longitude2sexaFunc(sqlite3_context *context, int argc, sqlite3_value **argv)
 {
   
   char* result;
@@ -1899,8 +1899,8 @@ int RegisterExtensionFunctions(sqlite3 *db){
 
     /* begin Rafael extensions */
     { "sphericaldist",      5, 0, SQLITE_UTF8,    1, sphericalDistFunc },
-    { "latitude",           1, 0, SQLITE_UTF8,    1, latitudeFunc },
-    { "longitude",          1, 0, SQLITE_UTF8,    1, longitudeFunc },
+    { "latitude2sexa",      1, 0, SQLITE_UTF8,    1, latitude2sexaFunc },
+    { "longitude2sexa",     1, 0, SQLITE_UTF8,    1, longitude2sexaFunc },
     /* end Rafael extensions
      
     /* string */
