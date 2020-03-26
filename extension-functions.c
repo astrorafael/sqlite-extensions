@@ -1704,6 +1704,50 @@ static void differenceFunc(sqlite3_context *context, int argc, sqlite3_value **a
 /* BEGIN EXTENSIONS BY RAFAEL GONZALEZ */
 /* *********************************** */
 
+
+/*
+  iso8601Func(date_id, time_id)
+  Returns an ISO8601 formatted timestamp YYYY-MM-DDTHH:MM:SS
+  from integer database identifiers encoded as YYYYMMDD (date_id) and HHMMSS(time_id) 
+*/
+
+#include <time.h>
+
+static void iso8601Func(sqlite3_context *context, int argc, sqlite3_value **argv){
+
+  char result[20]; /* result string */
+  struct tm tstamp;
+  int date_id;
+  int time_id;
+  size_t count;
+
+  assert(argc == 2);
+  
+  /* NULL if any of the input coordinates are NULL */
+  if(sqlite3_value_type(argv[0]) == SQLITE_NULL || sqlite3_value_type(argv[1]) == SQLITE_NULL) {
+    sqlite3_result_null(context);
+    return;
+  }
+
+  date_id = sqlite3_value_int(argv[0]);
+  time_id = sqlite3_value_int(argv[1]);
+
+  tstamp.tm_year  = (date_id / 10000) - 1900;
+  tstamp.tm_mon   = ((date_id % 10000) / 100) - 1;
+  tstamp.tm_mday  = date_id % 100;
+  tstamp.tm_hour  = time_id / 10000;
+  tstamp.tm_min   = (time_id % 10000) / 100;
+  tstamp.tm_sec   = time_id % 100;
+  tstamp.tm_isdst = 0;
+ 
+  count = strftime(result, sizeof result, "%Y-%m-%dT%H:%M:%S", &tstamp);
+  assert(count == sizeof result - 1);
+
+  sqlite3_result_text(context, result, -1, NULL);
+}
+
+
+
 #define MEAN_EARTH_RADIUS 6371 /* In Km, see https://en.wikipedia.org/wiki/Great-circle_distance */
 
 /*
@@ -1944,6 +1988,7 @@ int RegisterExtensionFunctions(sqlite3 *db){
     { "longitude2sexa",     1, 0, SQLITE_UTF8,    1, longitude2sexaFunc },
     { "sexa2longitude",     1, 0, SQLITE_UTF8,    1, sexa2degreesFunc },
     { "sexa2latitude",      1, 0, SQLITE_UTF8,    1, sexa2degreesFunc },
+    { "iso8601fromids",     2, 0, SQLITE_UTF8,    0, iso8601Func },
     /* end Rafael extensions */
      
     /* string */
